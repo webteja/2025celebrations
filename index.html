@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2025 Celebrations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  
+  <!-- Fireworks Canvas -->
+  <canvas id="fireworksCanvas"></canvas>
+
+  <!-- Centered Text -->
+  <div class="text" id="text1">
+    <span id="greeting">Happy New Year 2025!</span><br>
+    <span id="name">from Pritham</span>
+  </div>
+  <div class="text" id="text2">2024 India Highlights</div>
+  <div class="text" id="text3">The government launched Digital India 2.0, introducing AI in education, healthcare, and governance.</div>
+  <div class="text" id="text4">ISRO successfully executed the Space Docking Experiment (SpaDeX), showcasing India's advanced space capabilities.</div>
+  <!-- <div class="text" id="text5">BJP secured its third consecutive term in the 2024 Lok Sabha elections with major victories.</div>
+  <div class="text" id="text6">India won the ICC Men's T20 World Cup by defeating South Africa in the final.</div>
+  <div class="text" id="text7">Former Prime Minister Manmohan Singh passed away at 92, marking the end of an era.</div>
+  <div class="text" id="text8">Hyderabad was recognized as a global cybersecurity hub, attracting leading international companies.</div>
+  <div class="text" id="text9">The YSR Congress Party retained power in the 2024 Andhra Pradesh elections, with TDP as opposition.</div>
+  <div class="text" id="text10">A tragic stampede at Allu Arjun's event led to multiple fatalities and injuries.</div> 
+
+   -->
+  <!-- Modal for Celebration -->
+  <div class="modal" id="celebrationModal">
+    <div class="modal-content">
+      <h2>Celebrate India's remarkable journey with Your Family and Friends!</h2>
+      <p>Share Highlights of India </p>
+      <input type="text" id="userName" placeholder="Enter your name" />
+      <button id="shareButton">Share</button>
+      <div class="share-options" id="shareOptions"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    // Import the Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCFIsdbnYhzhlPRJEL_uS9a9N_rdTgde9A",
+      authDomain: "data-e46ff.firebaseapp.com",
+      projectId: "data-e46ff",
+      storageBucket: "data-e46ff.firebasestorage.app",
+      messagingSenderId: "291121446156",
+      appId: "1:291121446156:web:d9809b5e6d95cd976a1d29"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Variables for tracking user activity
+    const userDevice = navigator.userAgent;
+    let openTime = new Date();
+    let closeTime;
+    let totalTimeSpent = 0;
+    let isTabActive = true;
+    let inputName = "";
+    let shared = false;
+
+    // Reference Firestore collection
+    const activityCollection = collection(db, "userActivity");
+
+    // Event: User focuses or opens the tab
+    window.addEventListener("focus", () => {
+      isTabActive = true;
+      openTime = new Date();
+    });
+
+    // Event: User switches tab or closes
+    window.addEventListener("blur", () => {
+      isTabActive = false;
+      closeTime = new Date();
+      totalTimeSpent += (closeTime - openTime) / 1000; // Convert milliseconds to seconds
+      logActivity();
+    });
+
+    // Event: User types in the input field
+    const userNameInput = document.getElementById("userName");
+    userNameInput.addEventListener("input", (event) => {
+      inputName = event.target.value;
+    });
+
+    // Event: User clicks on the share button
+    const shareButton = document.getElementById("shareButton");
+    shareButton.addEventListener("click", async () => {
+      shared = true;
+      await logActivity(); // Log activity without showing the alert
+      shareResolutions(); // Call the share functionality
+    });
+
+// Share Button Functionality
+function shareResolutions() {
+  const userName = document.getElementById("userName").value;
+  const url = new URL(window.location.href);
+  const shareOptions = document.getElementById("shareOptions");
+
+  if (userName) {
+    url.searchParams.set("name", userName);
+
+    // Try using the Clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url.toString())
+        .then(() => {
+          shareOptions.innerHTML = `
+            <p>Link copied to clipboard! Share it with your friends.</p>
+            <button id="manualCopyButton" style="display: none;">Copy</button>`;
+        })
+        .catch(() => {
+          fallbackCopyTextToClipboard(url.toString(), shareOptions);
+        });
+    } else {
+      fallbackCopyTextToClipboard(url.toString(), shareOptions);
+    }
+
+    // Display social media share options
+    const socialMediaLinks = `
+      <p>Share on social media:</p>
+      <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url.toString())}" target="_blank">Facebook</a><br>
+      <a href="https://twitter.com/intent/tweet?url=${encodeURIComponent(url.toString())}" target="_blank">Twitter</a><br>
+      <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(url.toString())}" target="_blank">WhatsApp</a>
+    `;
+    shareOptions.innerHTML += socialMediaLinks;
+  } else {
+    alert("Please enter your name.");
+  }
+}
+
+// Fallback function to copy text manually
+function fallbackCopyTextToClipboard(text, shareOptions) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  document.body.appendChild(textArea);
+  textArea.select();
+  textArea.setSelectionRange(0, 99999); // For mobile devices
+
+  try {
+    const successful = document.execCommand("copy");
+    if (successful) {
+      shareOptions.innerHTML = `
+        <p>Link copied to clipboard! Share it with your friends.</p>
+        <button id="manualCopyButton" style="display: none;">Copy</button>`;
+    } else {
+      showCopyButton(text, shareOptions);
+    }
+  } catch (error) {
+    console.error("Fallback copy failed:", error);
+    showCopyButton(text, shareOptions);
+  }
+
+  document.body.removeChild(textArea);
+}
+
+// Function to show the "Copy" button
+function showCopyButton(text, shareOptions) {
+  shareOptions.innerHTML = `
+    <p>Clipboard API not supported. Please copy the URL manually:</p>
+    <button id="manualCopyButton">Copy</button>
+  `;
+  const copyButton = document.getElementById("manualCopyButton");
+  copyButton.addEventListener("click", () => copyTextManually(text));
+}
+
+// Manual copy function for the "Copy" button
+function copyTextManually(text) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  document.body.appendChild(textArea);
+  textArea.select();
+  textArea.setSelectionRange(0, 99999); // For mobile devices
+  try {
+    document.execCommand("copy");
+    alert("Link copied to clipboard!");
+  } catch (error) {
+    alert("Failed to copy the link. Please copy it manually.");
+  }
+  document.body.removeChild(textArea);
+}
+
+
+
+// Get the name from the URL query parameter and update the name display
+function updateUserNameFromURL() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const userName = urlParams.get('name');
+  
+  if (userName) {
+    const nameElement = document.getElementById('name');
+    nameElement.innerText = `from ${userName}`;
+  }
+}
+
+// Call the function to update the name when the page loads
+updateUserNameFromURL();
+
+function getDeviceId() {
+  // Generate a simple unique device ID using localStorage or any unique method
+  let deviceId = localStorage.getItem('deviceId');
+  if (!deviceId) {
+    // If no device ID exists, generate a new one and store it
+    deviceId = 'device-' + Date.now() + Math.random().toString(36).substring(2, 15);
+    localStorage.setItem('deviceId', deviceId);
+  }
+  return deviceId;
+}
+
+
+
+
+ // Function to format time into HH:MM:SS
+function formatTime(date) {
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+}
+
+// Log user activity to Firestore
+async function logActivity() {
+  try {
+    const deviceId = getDeviceId();  // Get the unique device ID
+
+    // Capture the current timestamp when the user enters or exits the page
+    const activityDoc = {
+      deviceId: deviceId,  // Store the unique device ID for each device
+      device: userDevice,
+      openTime: formatTime(openTime),  // Store start time in HH:MM:SS format
+      closeTime: closeTime ? formatTime(closeTime) : null,  // Store end time (if applicable) in HH:MM:SS format
+      totalTimeSpent: totalTimeSpent, // Time spent on the page
+      nameTyped: inputName || null, // Store the user's input name (if provided)
+      shared: shared, // Whether the user shared the link
+      timestamp: new Date().toISOString(), // Store the timestamp of the activity log entry
+    };
+
+    // Log the activity in Firestore collection
+    await addDoc(activityCollection, activityDoc);
+  } catch (error) {
+    console.error("Error logging activity:", error);
+  }
+}
+
+
+
+    // Final log when the user closes the page
+    window.addEventListener("beforeunload", () => {
+      if (isTabActive) {
+        closeTime = new Date();
+        totalTimeSpent += (closeTime - openTime) / 1000;
+        logActivity();
+      }
+    });
+  </script>
+
+  <script>
+    // Select the canvas and context
+    const canvas = document.getElementById("fireworksCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Resize the canvas to fit the window
+    let resizeTimeout;
+    function resizeCanvas() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }, 100);
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    // Utility Functions
+    function random(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function getRandomColor() {
+      const hue = random(0, 360);
+      const saturation = 80;
+      const lightness = 60;
+      return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    }
+
+    // Firework Class
+    class Firework {
+      constructor() {
+        this.x = random(100, canvas.width - 100);
+        this.y = canvas.height;
+        this.targetY = random(canvas.height / 4, canvas.height / 2);
+        this.color = getRandomColor();
+        this.exploded = false;
+        this.particles = [];
+        this.vx = random(-1, 1);
+        this.vy = -random(4, 7);
+      }
+
+      update() {
+        if (!this.exploded) {
+          this.x += this.vx;
+          this.y += this.vy;
+          if (this.y <= this.targetY) {
+            this.explode();
+            this.exploded = true;
+          }
+        }
+        this.particles.forEach((particle) => particle.update());
+        this.particles = this.particles.filter((particle) => particle.opacity > 0);
+      }
+
+      explode() {
+        for (let i = 0; i < 100; i++) {
+          const angle = random(0, Math.PI * 2);
+          const speed = random(2, 6);
+          const color = getRandomColor();
+          this.particles.push(new Particle(this.x, this.y, color, angle, speed));
+        }
+      }
+
+      draw() {
+        if (!this.exploded) {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+          ctx.fillStyle = this.color;
+          ctx.fill();
+        }
+        this.particles.forEach((particle) => particle.draw());
+      }
+    }
+
+    // Particle Class
+    class Particle {
+      constructor(x, y, color, angle, speed) {
+        this.x = x;
+        this.y = y;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.color = color;
+        this.opacity = 1;
+        this.gravity = 0.05;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += this.gravity;
+        this.opacity -= 0.01;
+      }
+
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // Animation
+    const fireworks = [];
+    function animate() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      fireworks.forEach((firework) => {
+        firework.update();
+        firework.draw();
+      });
+
+      fireworks.splice(0, fireworks.length - 20); // Keep recent fireworks only
+
+      requestAnimationFrame(animate);
+    }
+
+    setInterval(() => {
+      fireworks.push(new Firework());
+    }, 800);
+
+    animate();
+
+    // Display Text one by one with added delay and images
+    let textIndex = 1;
+let texts = document.querySelectorAll('.text');
+
+// Function to calculate display time based on text length
+function calculateDisplayTime(text) {
+  const words = text.split(' ').length; // Count words in the text
+  const readingSpeed = 2; // Words per second
+  return Math.max(words / readingSpeed, 3) * 1000; // Minimum 3 seconds display, converted to milliseconds
+}
+
+// Function to show the text sequentially with calculated delay
+function showText() {
+  texts.forEach(text => {
+    text.style.opacity = 0;
+    text.style.display = "none";
+  });
+
+  // Wait for an initial 5 seconds before starting the sequence
+  setTimeout(() => {
+    displayNextText();
+  }, 5000);
+}
+
+// Function to display texts one by one
+function displayNextText() {
+  if (textIndex <= texts.length) {
+    const currentText = document.getElementById(`text${textIndex}`);
+    const displayTime = calculateDisplayTime(currentText.innerText); // Calculate display time
+
+    // Display the current text with a fade-in effect
+    currentText.style.display = "block";
+    setTimeout(() => {
+      currentText.style.opacity = 1; // Fade in
+    }, 0);
+
+    // Increment textIndex for the next text
+    textIndex++;
+
+    // Hide the current text and show the next one after the calculated time
+    setTimeout(() => {
+      currentText.style.display = "none"; // Hide the text
+      if (textIndex <= texts.length) {
+        displayNextText(); // Show the next text
+      } else {
+        showModal(); // Show the modal immediately after the last text
+      }
+    }, displayTime); // Wait for the calculated time before proceeding
+  }
+}
+
+// Function to show the celebration modal immediately after the last text
+function showModal() {
+  const modal = document.getElementById("celebrationModal");
+  modal.style.display = "flex"; // Display the modal
+}
+
+// Start the sequence
+showText();
+
+
+
+  </script>
+</body>
+</html>
