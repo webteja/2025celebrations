@@ -9,7 +9,7 @@
 </head>
 <body>
 
-  
+
   <!-- Fireworks Canvas -->
   <canvas id="fireworksCanvas"></canvas>
 
@@ -21,22 +21,26 @@
   <div class="text" id="text2">Achievemnts by India 2024</div>
   <div class="text" id="text3">ISRO successfully launched its first space docking mission in December 2024.</div>
   <div class="text" id="text4">DRDO tested a hypersonic missile.</div>
-  <<div class="text" id="text5">Neeraj Chopra won a silver medal at the Paris 2024 Olympics</div>
+ <div class="text" id="text5">Neeraj Chopra won a silver medal at the Paris 2024 Olympics</div>
   <div class="text" id="text6">India won the ICC Men's T20 World Cup by defeating South Africa in the final.</div>
   <div class="text" id="text7">India’s GDP grew by 6.6%, boosting economic prospects</div>
   <div class="text" id="text8">Hyderabad was recognized as a global cybersecurity hub, leading international companies.</div>
-  <div class="text" id="text9">India launched its first human spaceflight mission successfully in 2024<div></div>
-  
+  <div class="text" id="text9">India launched its first human spaceflight mission successfully in 2024</div>
+  <div class="text" id="text10">The Unified Payments Interface processed a record 16.58 billion transactions</div> 
+
   <!-- Modal for Celebration -->
   <div class="modal" id="celebrationModal">
     <div class="modal-content">
-      <h2>Celebrate India's 2024 remarkable journey with Your Family and Friends!</h2>
+      <h2>Celebrate India's remarkable journey with Your Family and Friends!</h2>
       <p>Share Highlights of India </p>
       <input type="text" id="userName" placeholder="Enter your name" />
       <button id="shareButton">Share</button>
       <div class="share-options" id="shareOptions"></div>
     </div>
   </div>
+
+  
+
 
   <script type="module">
     // Import the Firebase modules
@@ -442,7 +446,6 @@ function showModal() {
   const modal = document.getElementById("celebrationModal");
   modal.style.display = "flex"; // Display the modal
 }
-
 
 // Start the sequence
 showText();
